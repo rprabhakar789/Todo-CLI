@@ -30,8 +30,8 @@ test("prints help when no additional args are provided", () => {
 
 test("prints help", () => {
   let received = execSync(tasksTxtCli("help")).toString("utf8");
-
-  expect(received).toEqual(expect.stringContaining(usage));
+  console.log(received)
+  expect(received).toEqual(expect.stringContaining(usage.toString("utf8")));
 });
 
 test("add a single tasks", () => {
@@ -58,11 +58,10 @@ test("add multiple tasks", () => {
   ];
 
   tasks.forEach((tasks, i) => {
-    let expected = `Added task: "${tasks}"`;
+    let expected = `Added task: "${tasks}" with priority ${i+1}`;
     let received = execSync(tasksTxtCli("add", `${i + 1} "${tasks}"`)).toString(
       "utf8"
     );
-
     expect(received).toEqual(expect.stringContaining(expected));
   });
 });

@@ -14,13 +14,16 @@ void printHelp()
   $ ./task help                 # Show usage
   $ ./task report               # Statistics
 */
-  cout<<"Usage :-"<<endl
-  <<"$ ./task add 2 hello world    # Add a new item with priority 2 and text \"hello world\" to the list"<<endl
-  <<"$ ./task ls                   # Show incomplete priority list items sorted by priority in ascending order"<<endl
-  <<"$ ./task del INDEX            # Delete the incomplete item with the given index"<<endl
-  <<"$ ./task done INDEX           # Mark the incomplete item with the given index as complete"<<endl
-  <<"$ ./task help                 # Show usage"<<endl
-  <<"$ ./task report               # Statistics"<<endl;
+string usage {R"(Usage :-
+$ ./task add 2 hello world    # Add a new item with priority 2 and text "hello world" to the list
+$ ./task ls                   # Show incomplete priority list items sorted by priority in ascending order
+$ ./task del INDEX            # Delete the incomplete item with the given index
+$ ./task done INDEX           # Mark the incomplete item with the given index as complete
+$ ./task help                 # Show usage
+$ ./task report               # Statistics)"};
+
+string help = "Usage :-\n$ ./task add 2 hello world    # Add a new item with priority 2 and text \"hello world\" to the list\n$ ./task ls                   # Show incomplete priority list items sorted by priority in ascending order\n$ ./task del INDEX            # Delete the incomplete item with the given index\n$ ./task done INDEX           # Mark the incomplete item with the given index as complete\n$ ./task help                 # Show usage\n$ ./task report               # Statistics";
+  cout<<help;
 }
 
 vector<pair<int, string>>getItems(){
@@ -34,12 +37,13 @@ vector<pair<int, string>>getItems(){
     string task;
     vector<pair<int, string>>items;
 
-    while (file >> priority >> task)
+    while (file >> priority)
     {
+        std::getline(file,task);
+        //cout<<priority<<" "<<task<<endl;
         items.push_back({priority,task});
       //  cout<<cnt++<<". "<<task<<" ["<<priority<<"]"<<endl;
     }
-
 
   // Close the file
   file.close();
@@ -66,7 +70,6 @@ void addItem(char* p, char* task)
 {
   //cout<<"adding item\n";
   auto n = stoi(p, nullptr, 10);
-  //cout<<*(task)<<endl;
   string s = string(task);
   pair<int,string>item = {n,s};
   vector<pair<int, string>>items = getItems();
@@ -76,9 +79,9 @@ void addItem(char* p, char* task)
   ofstream fout("task.txt");
   for(int i=0;i<(int)items.size();i++)
   {
-    fout<<items[i].first<<" "<<items[i].second<<endl;
+    fout<<items[i].first<<items[i].second<<endl;
   }
-  cout<<"Added task:\""<<s<<"\" with priority "<<n<<endl;
+  cout<<"Added task: \""<<s<<"\" with priority "<<n<<endl;
 
 }
 
@@ -86,18 +89,18 @@ void deleteItem(char* ind)
 {
   auto n = stoi(ind, nullptr, 10);
   vector<pair<int, string>>items = getItems();
-  if(n>(int)items.size())
+  if(n>(int)items.size()||n==0)
   {
-    cout<<"Error: item with index "<<n<<" does not exist. Nothing deleted.";
+    cout<<"Error: task with index #"<<n<<" does not exist. Nothing deleted.";
     return;
   }
   ofstream fout("task.txt");
   for(int i=0;i<(int)items.size();i++)
   {
     if(i!=n-1)
-    fout<<items[i].first<<" "<<items[i].second<<endl;
+    fout<<items[i].first<<items[i].second<<endl;
   }
-  cout<<"Deleted item with index "<<n<<endl;
+  cout<<"Deleted task #"<<n<<endl;
 
 }
 
@@ -105,17 +108,17 @@ void markDone(char* ind)
 {
   auto n = stoi(ind, nullptr, 10);
   vector<pair<int, string>>items = getItems();
-  if(n>items.size())
+  if(n>items.size()||n==0)
   {
-    cout<<"Error: no incomplete item with index "<<n<<" exists.";
+    cout<<"Error: no incomplete item with index #"<<n<<" exists.";
     return;
   }
   ofstream fout("task.txt");
-  ofstream done("completed.txt");
+  ofstream done("completed.txt",ios_base::app);
   for(int i=0;i<(int)items.size();i++)
   {
     if(i!=n-1)
-    fout<<items[i].first<<" "<<items[i].second<<endl;
+    fout<<items[i].first<<items[i].second<<endl;
     else{
       done<<items[i].second<<"\n";
     }
@@ -128,7 +131,7 @@ vector<string>getDoneItems()
   ifstream fin("completed.txt");
   string word;
   vector<string>done;
-  while(fin>>word)
+  while(getline(fin,word))
   {
     done.push_back(word);
   }
@@ -142,7 +145,6 @@ void getReport(){
     {
       cout<<(i+1)<<". "<<items[i].second<<" ["<<items[i].first<<"]\n";
     }
-    cout<<endl;
     vector<string>completed = getDoneItems();
     cout<<"Completed : "<<completed.size()<<endl;
     for(int i=0;i<completed.size();i++)
@@ -153,11 +155,13 @@ void getReport(){
 }
 int main(int argc, char* argv[])
 {
-    string cmd = *(argv+1);
+
     if(argc==1)
     {
       printHelp();
+      return 0;
     }
+    string cmd = *(argv+1);
     if(strcmp(*(argv+1), "help")==0)
     {
       printHelp();
@@ -168,6 +172,11 @@ int main(int argc, char* argv[])
     }
     else if(strcmp(*(argv+1), "del")==0)
     {
+      if(argc<3)
+      {
+        cout<<"Error: Missing NUMBER for deleting tasks.";
+        return 0;
+      }
       deleteItem(*(argv+2));
     }
     else if(strcmp(*(argv+1), "add")==0)
@@ -181,6 +190,11 @@ int main(int argc, char* argv[])
     }
     else if(strcmp(*(argv+1), "done")==0)
     {
+      if(argc<3)
+      {
+        cout<<"Error: Missing NUMBER for marking tasks as done.";
+        return 0;
+      }
       markDone(*(argv+2));
     }
     else if(strcmp(*(argv+1), "report")==0)
