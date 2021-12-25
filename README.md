@@ -1,6 +1,5 @@
 # Global Digital Corps - Software Engineering Test Problem | Priority list
 
-Thanks for applying to the Global Digital Corps!
 
 In this step we want to see how you implement a command-line (CLI) program that lets you manage your tasks.
 
